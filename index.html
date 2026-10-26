@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#151515">
+<title>BushyBill.com | Evil Dog Department</title>
+<style>
+  :root { color-scheme: dark; --bg:#151515; --panel:#222; --red:#c83a32; --cream:#f4e9d5; --muted:#b9b1a5; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--cream); font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  header { padding:30px 18px 22px; text-align:center; background:radial-gradient(ellipse at top,#54221f 0,#211818 48%,#151515 100%); border-bottom:1px solid #49302d; }
+  .stamp { display:inline-block; border:1px solid #e15a4f; color:#ff8176; padding:5px 10px; letter-spacing:.14em; font-size:.72rem; font-weight:800; transform:rotate(-2deg); }
+  h1 { font-size:clamp(2.5rem,12vw,5rem); line-height:.95; margin:18px 0 10px; letter-spacing:-.06em; }
+  h1 span { color:#ff6257; }
+  .subtitle { color:var(--muted); margin:0 auto; max-width:520px; }
+  main { width:min(900px,100%); margin:auto; padding:22px 16px 48px; }
+  .alert { background:#38211f; border:1px solid #7c3933; border-radius:12px; padding:14px 16px; margin-bottom:20px; }
+  .alert strong { color:#ff8176; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+  .card { background:var(--panel); border:1px solid #393633; border-radius:16px; padding:18px; }
+  .dog { font-size:3.5rem; line-height:1.2; }
+  .tag { color:#ff8176; text-transform:uppercase; font-size:.7rem; font-weight:800; letter-spacing:.12em; }
+  h2 { margin:8px 0; font-size:1.35rem; }
+  p { line-height:1.5; }
+  .price { color:#e9c58c; font-weight:800; font-size:1.2rem; }
+  button { width:100%; border:0; border-radius:10px; padding:13px 14px; margin-top:8px; background:var(--red); color:white; font:inherit; font-weight:800; cursor:pointer; }
+  button:active { transform:scale(.99); }
+  .wide { margin-top:16px; }
+  #result { display:none; margin-top:16px; background:#202c22; border:1px solid #3d6b45; padding:16px; border-radius:12px; overflow-wrap:anywhere; }
+  footer { text-align:center; color:#8e877d; padding:24px 12px; border-top:1px solid #393633; font-size:.82rem; }
+  .tiny { color:#9e968b; font-size:.82rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="stamp">OFFICIAL • VERY SUSPICIOUS</div>
+  <h1>BUSHY<span>BILL</span></h1>
+  <p class="subtitle">The internet's least trustworthy dog-distribution company.</p>
+</header>
+<main>
+  <div class="alert"><strong>NOTICE FROM MANAGEMENT:</strong> We are not responsible for chewed furniture, mysterious barking, or dogs that already know your passwords.</div>
+  <h2>Available for questionable adoption</h2>
+  <div class="grid">
+    <section class="card">
+      <div class="dog" aria-hidden="true">🐕‍🦺</div>
+      <div class="tag">Model 001</div>
+      <h2>The Suspicious One</h2>
+      <p>Stares at a closed door until you begin to question reality.</p>
+      <div class="price">3 biscuits</div>
+      <button onclick="order('The Suspicious One')">Request this dog</button>
+    </section>
+    <section class="card">
+      <div class="dog" aria-hidden="true">🐩</div>
+      <div class="tag">Model 002</div>
+      <h2>The Evil Genius</h2>
+      <p>Has a plan. The plan is probably about stealing your sandwich.</p>
+      <div class="price">7 biscuits</div>
+      <button onclick="order('The Evil Genius')">Request this dog</button>
+    </section>
+    <section class="card">
+      <div class="dog" aria-hidden="true">🐶</div>
+      <div class="tag">Model 003</div>
+      <h2>The Leg Inspector</h2>
+      <p>Conducts deeply confusing quality-control checks. Management declines to elaborate.</p>
+      <div class="price">1 suspicious sock</div>
+      <button onclick="order('The Leg Inspector')">Request this dog</button>
+    </section>
+  </div>
+  <section class="card wide">
+    <div class="tag">Special service</div>
+    <h2>Order an evil dog</h2>
+    <p>Our shipping department consists of one dog, a cardboard box, and a map that is upside down.</p>
+    <button onclick="order('A completely random evil dog')">DEPLOY EVIL DOG</button>
+    <div id="result" role="status" aria-live="polite"></div>
+    <p class="tiny">This is a joke demo. Buttons do not place real orders, collect information, or contact anyone.</p>
+  </section>
+</main>
+<footer>
+  BushyBill™ • Evil Dog Distribution • “Probably not a real company.”<br>
+  No actual dogs are ordered, shipped, or placed in charge of logistics.
+</footer>
+<script>
+function order(name) {
+  const messages = [
+    "ORDER STATUS: Rejected. The dog has promoted itself to CEO.",
+    "ORDER STATUS: Pending. A suspicious pawprint was found on the paperwork.",
+    "ORDER STATUS: Delayed. The delivery dog chased the delivery truck.",
+    "ORDER STATUS: Approved by absolutely nobody. Please remain confused."
+  ];
+  const box = document.getElementById("result");
+  box.style.display = "block";
+  box.textContent = name + " — " + messages[Math.floor(Math.random() * messages.length)];
+  box.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+</script>
+</body>
+</html>
