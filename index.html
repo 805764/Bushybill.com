@@ -44,5 +44,55 @@ function personality(t){const r={socks:'RESULT: THE LAUNDRY PHANTOM. Your dog wi
 function newUpdate(){updateCount++;const lines=['Operations are proceeding as planned. The plan has been eaten.','Slam has resigned. Slam was a box. We are processing this.','Reminder: “tung tung tung sahur” is not an approved shipping code.','Billy is now acting CEO, permanent CEO, and the office door.','Lickin has licked the server rack. Website performance is unchanged.','We regret to announce the cardboard box has acquired legal representation.','The dog tracking system has tracked itself to the break room.','Sandwich theft numbers are up 900%. We have no sandwiches to compare.'];const p=document.createElement('p');p.textContent='> UPDATE '+String(updateCount).padStart(2,'0')+': '+lines[Math.floor(Math.random()*lines.length)];$('management-feed').prepend(p);while($('management-feed').children.length>6)$('management-feed').removeChild($('management-feed').lastElementChild);toast('Management has released another statement and regrets nothing.')}
 function acceptFate(){const box=$('secret-result');box.style.display='block';box.textContent='ORDER ACCEPTED. Billy has been notified. Billy is already on his way. Please do not open the cardboard box if it starts negotiating. Ref: BILLY-???';document.body.classList.add('chaos-mode');toast('You have accepted the fate. Management has marked you as “probably fine”.')}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2700)}
+
+// Undocumented keyboard passwords. Nothing is sent or saved anywhere.
+(function(){
+  let typed = '';
+  const commands = {
+    'billywasneverhired': function(){
+      document.body.classList.add('billy-takeover');
+      let banner = document.getElementById('billy-override-banner');
+      if(!banner){
+        banner = document.createElement('div');
+        banner.id = 'billy-override-banner';
+        banner.innerHTML = '<strong>INTERNAL MEMO 0xB1LLY</strong><br>BILLY HAS ASSUMED CONTROL OF THIS WEBSITE.<br>HUMAN MANAGEMENT IS NOW A DECORATIVE CONCEPT.';
+        banner.style.cssText = 'position:fixed;z-index:99999;top:14px;left:50%;transform:translateX(-50%);width:min(92vw,560px);padding:18px;border:2px solid #ff5a5a;background:#180707;color:#ffb1a8;text-align:center;font:700 13px/1.6 monospace;box-shadow:0 0 35px #ff252577;border-radius:8px';
+        document.body.appendChild(banner);
+      }
+      document.querySelectorAll('h1,h2').forEach(function(h){ if(!h.dataset.originalText) h.dataset.originalText=h.textContent; });
+      const hero = document.querySelector('h1'); if(hero) hero.textContent='BILLY BILL™ — THE DOG IS THE COMPANY NOW';
+      if(typeof toast==='function') toast('ADMIN OVERRIDE ACCEPTED. The board has been replaced by a poodle.');
+    },
+    'slam': function(){
+      let box=document.getElementById('slam-secret');
+      if(!box){box=document.createElement('div');box.id='slam-secret';box.style.cssText='position:fixed;z-index:99998;right:16px;bottom:16px;max-width:310px;padding:18px;background:#101b18;color:#baffc9;border:1px dashed #baffc9;border-radius:8px;font:13px/1.5 monospace;box-shadow:0 8px 35px #0009';box.innerHTML='<b>BOX 000 — CLASSIFIED</b><br>SLAM WAS NEVER A DOG.<br>SLAM WAS THE BOX.<br><br><span style="opacity:.7">[This explains nothing. Case closed.]</span>';document.body.appendChild(box);}else{box.remove();}
+      if(typeof toast==='function') toast('Slam protocol toggled. Logistics refuses to elaborate.');
+    },
+    'lickin': function(){
+      document.body.classList.toggle('lickin-mode');
+      if(typeof toast==='function') toast('LICKIN HAS ACCESSED THE CONTENT MANAGEMENT SYSTEM.');
+    },
+    'managementrestore': function(){
+      document.body.classList.remove('billy-takeover','lickin-mode');
+      const banner=document.getElementById('billy-override-banner');if(banner)banner.remove();
+      const box=document.getElementById('slam-secret');if(box)box.remove();
+      const hero=document.querySelector('h1');if(hero && hero.dataset.originalText){hero.textContent=hero.dataset.originalText;delete hero.dataset.originalText;}
+      if(typeof toast==='function') toast('Management restored. Nobody has learned anything.');
+    }
+  };
+  window.addEventListener('keydown',function(e){
+    const t=e.target;
+    if(t && (t.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(t.tagName))) return;
+    if(e.key.length!==1 || e.ctrlKey || e.metaKey || e.altKey) return;
+    typed=(typed+e.key.toLowerCase()).slice(-32);
+    for(const password of Object.keys(commands)){
+      if(typed.endsWith(password)){commands[password]();typed='';break;}
+    }
+  });
+  const style=document.createElement('style');
+  style.textContent='.billy-takeover{filter:hue-rotate(325deg) saturate(1.25)}.billy-takeover .card{border-color:#a53b3b!important}.lickin-mode h1,.lickin-mode h2,.lickin-mode h3{letter-spacing:.08em;text-shadow:2px 0 #7df5c0,-2px 0 #ff5e78}.lickin-mode .eyebrow:after{content:" / LICKIN WAS HERE";color:#7df5c0}';
+  document.head.appendChild(style);
+})();
+
 </script>
 </body></html>
