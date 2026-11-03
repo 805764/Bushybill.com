@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commonwealth | Civilization Simulator</title>
+<style>
+:root{--bg:#101311;--panel:#191f1b;--panel2:#202923;--line:#303b33;--text:#e8eee8;--muted:#9ba99e;--green:#91bd83;--gold:#d9b66d;--red:#d77e72;--blue:#83aeca}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:22px max(20px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);background:#151a16;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{font-size:21px;font-weight:800;letter-spacing:.12em}.sub{color:var(--muted);font-size:12px;letter-spacing:.08em}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:9px 12px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--green)}button.primary{background:#29402d;border-color:#46694b}button.danger{color:#f0aaa0}
+main{max-width:1180px;margin:24px auto;padding:0 18px 50px}
+.status{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:18px}.dot{width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:17px;min-width:0}
+.metric-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.metric{font-size:29px;font-weight:750;margin-top:5px}.metric-note{font-size:12px;color:var(--muted);margin-top:3px}
+.section{margin-top:22px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}h2{font-size:17px;margin:0}h3{font-size:14px;margin:0 0 12px}
+.columns{display:grid;grid-template-columns:1.25fr .75fr;gap:12px}
+.bars{display:grid;gap:11px}.barrow{display:grid;grid-template-columns:110px 1fr 48px;gap:10px;align-items:center;font-size:13px}.track{height:9px;background:#2a332d;border-radius:99px;overflow:hidden}.fill{height:100%;background:var(--green);border-radius:99px}.fill.gold{background:var(--gold)}.fill.blue{background:var(--blue)}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:22px 0 12px}.tabs button.active{background:#304633;border-color:#66866a}
+.panel{display:none}.panel.active{display:block}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}td.num,th.num{text-align:right}
+.table-wrap{overflow-x:auto}
+.event{padding:11px 0;border-bottom:1px solid var(--line);display:flex;gap:12px}.event:last-child{border:0}.year{color:var(--gold);font-variant-numeric:tabular-nums;min-width:65px;font-size:12px;padding-top:2px}.event p{margin:0}.event small{color:var(--muted)}
+.notice{color:var(--muted);font-size:12px;margin-top:14px}.empty{color:var(--muted);padding:20px 0}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}header{align-items:flex-start}.metric{font-size:25px}}
+@media(max-width:420px){.grid{gap:8px}.card{padding:13px}.metric{font-size:22px}.barrow{grid-template-columns:82px 1fr 38px}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="brand">COMMONWEALTH</div><div class="sub">A SMALL SOCIETY WITH LARGE PROBLEMS</div></div>
+  <div class="controls">
+    <button id="toggle" class="primary">Pause</button>
+    <button id="step">Advance 1 year</button>
+    <select id="speed" aria-label="Simulation speed"><option value="5000">1 year / 5 sec</option><option value="2000" selected>1 year / 2 sec</option><option value="800">1 year / 0.8 sec</option><option value="250">1 year / 0.25 sec</option></select>
+    <button id="save">Save</button>
+    <button id="reset" class="danger">New civilization</button>
+  </div>
+</header>
+<main>
+  <div class="status"><span class="dot" id="dot"></span><span id="runstate">Simulation running</span><span>•</span><span id="yearline">Year 1</span><span>•</span><span id="savedline">Autosaves in this browser</span></div>
+  <section class="grid">
+    <div class="card"><div class="metric-label">Population</div><div class="metric" id="population">—</div><div class="metric-note" id="popchange">Starting population</div></div>
+    <div class="card"><div class="metric-label">Treasury</div><div class="metric" id="treasury">—</div><div class="metric-note">Public funds</div></div>
+    <div class="card"><div class="metric-label">Average personal wealth</div><div class="metric" id="wealth">—</div><div class="metric-note">Across living residents</div></div>
+    <div class="card"><div class="metric-label">Families</div><div class="metric" id="families">—</div><div class="metric-note" id="birthdeath">Births and deaths tracked</div></div>
+  </section>
+  <div class="columns section">
+    <div class="card">
+      <div class="section-head"><h2>Population structure</h2><span class="sub" id="population-total"></span></div>
+      <div class="bars" id="agebars"></div>
+    </div>
+    <div class="card">
+      <h2>Economic snapshot</h2>
+      <div class="bars" style="margin-top:16px" id="econbars"></div>
+      <div class="notice" id="economy-note"></div>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="active" data-tab="overview">Overview</button>
+    <button data-tab="people">People</button>
+    <button data-tab="economy">Economy</button>
+    <button data-tab="history">History</button>
+  </nav>
+  <section class="panel active" id="overview">
+    <div class="columns">
+      <div class="card"><h2>Recent developments</h2><div id="recent-events"></div></div>
+      <div class="card"><h2>Society at a glance</h2><div class="bars" id="society"></div></div>
+    </div>
+  </section>
+  <section class="panel" id="people">
+    <div class="card">
+      <div class="section-head"><h2>Residents</h2><span class="sub" id="resident-count"></span></div>
+      <div class="table-wrap"><table><thead><tr><th>Name</th><th>Age</th><th>Occupation</th><th>Family</th><th class="num">Wealth</th></tr></thead><tbody id="people-table"></tbody></table></div>
+      <div class="notice">Showing up to 100 residents, sorted by age. Every resident is tracked individually.</div>
+    </div>
+  </section>
+  <section class="panel" id="economy">
+    <div class="grid">
+      <div class="card"><div class="metric-label">Annual production</div><div class="metric" id="production">—</div></div>
+      <div class="card"><div class="metric-label">Annual wages</div><div class="metric" id="wages">—</div></div>
+      <div class="card"><div class="metric-label">Tax income</div><div class="metric" id="taxes">—</div></div>
+      <div class="card"><div class="metric-label">Unemployment</div><div class="metric" id="unemployment">—</div></div>
+    </div>
+    <div class="card section"><h2>Occupations</h2><div class="bars" id="jobs" style="margin-top:16px"></div></div>
+  </section>
+  <section class="panel" id="history">
+    <div class="card"><div class="section-head"><h2>Historical record</h2><span class="sub">Most recent first</span></div><div id="all-events"></div></div>
+  </section>
+  <p class="notice">Prototype note: this version runs in the visitor's browser and saves to that browser's local storage. Each visitor currently gets their own civilization. A shared, continuously running world will require a hosted server and shared database in a later upgrade.</p>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const firstNames = ["Ada","Alden","Amara","Ansel","Beatrice","Bram","Celia","Cyrus","Dara","Edwin","Elara","Elias","Faye","Felix","Greta","Hugo","Ida","Iris","Jonas","June","Kellan","Lena","Mara","Milo","Nadia","Nico","Oren","Otto","Petra","Quinn","Rhea","Rowan","Soren","Talia","Tomas","Vera","Willa","Yara"];
+const lastNames = ["Alder","Ashford","Bell","Briar","Calder","Cobb","Dale","Ellery","Frost","Grove","Hale","Harper","Ives","Kerr","Linden","Morrow","North","Orwell","Pike","Reed","Sable","Thorne","Vale","Wren"];
+const jobs = ["Farmer","Builder","Craftsperson","Merchant","Laborer","Teacher","Guard","Clerk"];
+const wages = {Farmer:34,Builder:42,Craftsperson:39,Merchant:48,Laborer:27,Teacher:40,Guard:38,Clerk:36};
+const money = n => "$"+Math.round(n).toLocaleString("en-US");
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+let state, timer=null, running=true, lastDelta=0;
+function newPerson(family, age){
+  const job = age<16 ? "Child" : pick(jobs);
+  return {id:state.nextId++,name:pick(firstNames)+" "+pick(lastNames),age:age??rand(1,65),job,wealth:job==="Child"?rand(0,8):rand(30,180),family};
+}
+function addEvent(text){state.events.unshift({year:state.year,text});if(state.events.length>250)state.events.pop();}
+function createWorld(){
+  state={year:1,nextId:1,nextFamily:1,people:[],families:[],treasury:12000,production:0,wageTotal:0,taxTotal:0,births:0,deaths:0,events:[]};
+  for(let i=0;i<38;i++){
+    const fam=state.nextFamily++;
+    state.families.push({id:fam,name:pick(lastNames)+" family"});
+    const size=rand(2,5);
+    for(let j=0;j<size;j++)state.people.push(newPerson(fam, j===0?rand(20,48):rand(0,Math.min(65, j===1?45:20))));
+  }
+  addEvent("The Commonwealth is founded. Its first families begin building a shared society.");
+  addEvent("A provisional council establishes a public treasury and begins collecting modest taxes.");
+  render();
+}
+function advance(){
+  const before=state.people.length;state.year++;state.births=0;state.deaths=0;
+  let production=0,wageTotal=0,taxTotal=0;
+  for(const p of state.people){
+    p.age++;
+    if(p.age>=16 && p.job==="Child")p.job=pick(jobs);
+    if(p.age>=67 && Math.random()<0.65)p.job="Retired";
+    if(p.age>=78 && Math.random()<0.055){p.dead=true;state.deaths++;continue;}
+    if(p.age>=95 && Math.random()<0.28){p.dead=true;state.deaths++;continue;}
+    if(p.job!=="Child"&&p.job!=="Retired"){
+      const pay=wages[p.job]||30;
+      p.wealth+=pay;
+      wageTotal+=pay;
+      production+=pay*1.65;
+      const tax=Math.max(0,Math.round(pay*0.12));
+      p.wealth-=tax;taxTotal+=tax;
+    }else if(p.job==="Retired"){p.wealth+=8;}
+    p.wealth=Math.max(0,p.wealth);
+  }
+  state.people=state.people.filter(p=>!p.dead);
+  state.production=Math.round(production);state.wageTotal=wageTotal;state.taxTotal=taxTotal;
+  state.treasury+=taxTotal-rand(180,360);
+  // Births: adult residents may have children; families are tracked as groups.
+  const adults=state.people.filter(p=>p.age>=20&&p.age<=39);
+  for(const adult of adults){
+    if(Math.random()<0.045 && state.people.length<2500){
+      const child=newPerson(adult.family,0);child.job="Child";child.wealth=0;
+      state.people.push(child);state.births++;
+    }
+  }
+  // New families form occasionally among adults without creating a separate person.
+  if(state.year%5===0 && state.people.length<2500 && Math.random()<0.7){
+    const fam=state.nextFamily++;
+    state.families.push({id:fam,name:pick(lastNames)+" family"});
+    addEvent("A new household is recorded: "+state.families[state.families.length-1].name+".");
+  }
+  if(state.births)addEvent(state.births+" "+(state.births===1?"child was":"children were")+" born this year.");
+  if(state.deaths)addEvent(state.deaths+" residents died this year.");
+  const change=state.people.length-before;
+  if(Math.random()<0.18)addEvent(pick([
+    "A productive harvest improves food supplies across the Commonwealth.",
+    "Several merchants expand their trade networks.",
+    "A storm damages roads and delays construction.",
+    "The council funds repairs to public buildings.",
+    "A new workshop opens and creates several jobs.",
+    "A poor trading season puts pressure on household savings.",
+    "Local teachers establish a small public school."
+  ]));
+  if(state.year%10===0)addEvent("A decade has passed. The population now stands at "+state.people.length.toLocaleString()+".");
+  lastDelta=change;render();save(false);
+}
+function groupCount(key){const out={};for(const p of state.people){const k=key(p);out[k]=(out[k]||0)+1;}return out;}
+function bar(label,value,max,cls=""){return `<div class="barrow"><span>${label}</span><div class="track"><div class="fill ${cls}" style="width:${max?Math.min(100,value/max*100):0}%"></div></div><strong class="num">${value}</strong></div>`;}
+function render(){
+  const n=state.people.length,avg=n?state.people.reduce((s,p)=>s+p.wealth,0)/n:0;
+  $("population").textContent=n.toLocaleString();$("treasury").textContent=money(state.treasury);
+  $("wealth").textContent=money(avg);$("families").textContent=state.families.length.toLocaleString();
+  $("popchange").textContent=state.year===1?"Initial population":(lastDelta>=0?"+":"")+lastDelta+" since last year";
+  $("birthdeath").textContent=state.births+" births • "+state.deaths+" deaths last year";
+  $("yearline").textContent="Year "+state.year;
+  const ageGroups={"Children (0–15)":0,"Adults (16–64)":0,"Seniors (65+)":0};
+  for(const p of state.people){if(p.age<16)ageGroups["Children (0–15)"]++;else if(p.age<65)ageGroups["Adults (16–64)"]++;else ageGroups["Seniors (65+)"]++;}
+  $("agebars").innerHTML=Object.entries(ageGroups).map(([k,v],i)=>bar(k,v,n,i===1?"gold":i===2?"blue":"")).join("");
+  const employed=state.people.filter(p=>!["Child","Retired"].includes(p.job)).length;
+  $("econbars").innerHTML=bar("Employed",employed,n,"")+bar("Not employed",n-employed,n,"blue")+bar("Treasury",Math.max(0,state.treasury),Math.max(1,state.treasury+5000),"gold");
+  $("economy-note").textContent="Annual tax receipts: "+money(state.taxTotal)+". Treasury changes as taxes are collected and public costs are paid.";
+  $("population-total").textContent=n.toLocaleString()+" residents";
+  $("society").innerHTML=bar("Families",state.families.length,Math.max(1,state.families.length*1.2),"gold")+bar("Children",ageGroups["Children (0–15)"],n,"blue")+bar("Working",employed,n,"");
+  const events=state.events.slice(0,6);
+  $("recent-events").innerHTML=events.map(e=>`<div class="event"><span class="year">Year ${e.year}</span><p>${escapeHTML(e.text)}</p></div>`).join("")||'<div class="empty">No events recorded yet.</div>';
+  $("all-events").innerHTML=state.events.map(e=>`<div class="event"><span class="year">Year ${e.year}</span><p>${escapeHTML(e.text)}</p></div>`).join("");
+  $("resident-count").textContent=n+" total";
+  $("people-table").innerHTML=state.people.slice().sort((a,b)=>b.age-a.age).slice(0,100).map(p=>`<tr><td>${escapeHTML(p.name)}</td><td>${p.age}</td><td>${p.job}</td><td>${escapeHTML((state.families.find(f=>f.id===p.family)||{name:"Unknown"}).name)}</td><td class="num">${money(p.wealth)}</td></tr>`).join("");
+  $("production").textContent=money(state.production);$("wages").textContent=money(state.wageTotal);$("taxes").textContent=money(state.taxTotal);
+  $("unemployment").textContent=n?Math.round((n-employed)/n*100)+"%":"0%";
+  const jc=groupCount(p=>p.job);$("jobs").innerHTML=Object.entries(jc).sort((a,b)=>b[1]-a[1]).map(([k,v])=>bar(k,v,n,k==="Child"?"blue":"")).join("");
+}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function save(show=true){try{localStorage.setItem("commonwealthSave",JSON.stringify(state));$("savedline").textContent="Saved in this browser";if(show)$("save").textContent="Saved";}catch(e){$("savedline").textContent="Could not save in this browser";}}
+function load(){try{const raw=localStorage.getItem("commonwealthSave");if(raw){const data=JSON.parse(raw);if(data&&Array.isArray(data.people)&&Array.isArray(data.families)&&Array.isArray(data.events)){state=data;render();return true;}}}catch(e){}return false;}
+function start(){if(timer)clearInterval(timer);timer=setInterval(()=>{if(running)advance();},Number($("speed").value));}
+$("toggle").addEventListener("click",()=>{running=!running;$("toggle").textContent=running?"Pause":"Resume";$("runstate").textContent=running?"Simulation running":"Simulation paused";$("dot").style.background=running?"var(--green)":"var(--gold)";});
+$("step").addEventListener("click",advance);
+$("speed").addEventListener("change",start);
+$("save").addEventListener("click",()=>save(true));
+$("reset").addEventListener("click",()=>{if(confirm("Start a completely new civilization? The saved civilization in this browser will be replaced.")){createWorld();save();}});
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab));}));
+if(!load())createWorld();
+start();
+</script>
+</body>
+</html>
